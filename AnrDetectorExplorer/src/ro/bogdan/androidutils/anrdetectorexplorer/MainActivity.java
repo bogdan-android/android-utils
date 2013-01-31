@@ -3,30 +3,64 @@ package ro.bogdan.androidutils.anrdetectorexplorer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.holoeverywhere.app.Activity;
+
+
 import ro.bogdan.androidutils.anrdetectorexplorer.db.AnrDatabase;
 import ro.bogdan.androidutils.anrdetectorexplorer.db.AnrLog;
 import ro.bogdan.androidutils.anrdetectorexplorer.utils.Helper;
 import ro.bogdan.anrdetectorutils.AnrType;
 
-import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 import android.database.Cursor;
 import android.os.Bundle;
 
-public class MainActivity extends SherlockActivity {
+public class MainActivity extends Activity {
+	ActionMode mode;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		testInsert();
-		testQuery();
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		return super.onCreateOptionsMenu(menu);
+		getSupportMenuInflater().inflate(R.menu.activity_main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menu_send:
+			mode = startActionMode(new SendLogsActionMode());
+			break;
+
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onBackPressed() {
+		if (!dismissActionMode()) {
+			super.onBackPressed();
+		}
+	}
+
+	private boolean dismissActionMode() {
+		if (mode != null) {
+			mode.finish();
+			mode = null;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public void testInsert() {
@@ -66,5 +100,33 @@ public class MainActivity extends SherlockActivity {
 		AnrDatabase.getInstance().close();
 		long end = System.currentTimeMillis();
 		System.out.println("DEBUG: testQuery: " + count + " items in: " + (end - start) + " ms");
+	}
+
+	private final class SendLogsActionMode implements ActionMode.Callback {
+
+		@Override
+		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+			getSupportMenuInflater().inflate(R.menu.action_mode, menu);
+			return true;
+		}
+
+		@Override
+		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void onDestroyActionMode(ActionMode mode) {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 }
