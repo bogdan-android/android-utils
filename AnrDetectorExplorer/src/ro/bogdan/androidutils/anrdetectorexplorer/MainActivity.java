@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.holoeverywhere.app.Activity;
 
-
 import ro.bogdan.androidutils.anrdetectorexplorer.db.AnrDatabase;
 import ro.bogdan.androidutils.anrdetectorexplorer.db.AnrLog;
+import ro.bogdan.androidutils.anrdetectorexplorer.db.AnrLogsGroup;
 import ro.bogdan.androidutils.anrdetectorexplorer.utils.Helper;
 import ro.bogdan.anrdetectorutils.AnrType;
 
@@ -15,16 +15,22 @@ import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements LoaderCallbacks<List<AnrLogsGroup>> {
 	ActionMode mode;
+	private String selectedPackageName;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		getSupportLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -66,16 +72,16 @@ public class MainActivity extends Activity {
 	public void testInsert() {
 		long start = System.currentTimeMillis();
 		List<AnrLog> logList = new ArrayList<AnrLog>();
-		logList.add(new AnrLog("trace1", "title1", AnrType.SMALL, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace2", "title2", AnrType.MEDIUM, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace3", "title3", AnrType.LARGE, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace4", "title4", AnrType.MEDIUM, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace5", "title5", AnrType.SMALL, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace6", "title6", AnrType.MEDIUM, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace7", "title7", AnrType.LARGE, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace8", "title8", AnrType.MEDIUM, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace9", "title9", AnrType.SMALL, System.currentTimeMillis()));
-		logList.add(new AnrLog("trace10", "title10", AnrType.LARGE, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test1", "trace1", "title1", AnrType.SMALL, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test1", "trace2", "title2", AnrType.MEDIUM, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test1", "trace3", "title3", AnrType.LARGE, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test1", "trace4", "title4", AnrType.MEDIUM, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test1", "trace5", "title5", AnrType.SMALL, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test2", "trace6", "title6", AnrType.MEDIUM, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test2", "trace7", "title7", AnrType.LARGE, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test2", "trace8", "title8", AnrType.MEDIUM, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test2", "trace9", "title9", AnrType.SMALL, System.currentTimeMillis()));
+		logList.add(new AnrLog("ro.bogdan.test3", "trace10", "title10", AnrType.LARGE, System.currentTimeMillis()));
 		AnrDatabase.getInstance().open();
 		for (AnrLog log : logList) {
 			AnrDatabase.getInstance().insertLog(log);
@@ -127,6 +133,40 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated method stub
 
 		}
+
+	}
+
+	private class AnrAsyncLoader extends AsyncTaskLoader<List<AnrLogsGroup>> {
+
+		public AnrAsyncLoader(Context context) {
+			super(context);
+		}
+
+		@Override
+		public List<AnrLogsGroup> loadInBackground() {
+			List<AnrLogsGroup> anrLogsGroupList = new ArrayList<AnrLogsGroup>();
+			AnrDatabase.getInstance().open();
+			Cursor cursor = AnrDatabase.getInstance().getLogsGroupedByPackageName(selectedPackageName);
+			
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+	}
+
+	@Override
+	public Loader<List<AnrLogsGroup>> onCreateLoader(int id, Bundle bundle) {
+		return new AnrAsyncLoader(this);
+	}
+
+	@Override
+	public void onLoadFinished(Loader<List<AnrLogsGroup>> loader, List<AnrLogsGroup> result) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void onLoaderReset(Loader<List<AnrLogsGroup>> loader) {
+		// TODO Auto-generated method stub
 
 	}
 }

@@ -16,6 +16,7 @@ public class AnrDatabase {
 	private static final String TABLE_NAME = "table_anr_logs";
 	private static final String ID = "_id";
 	private static final String TRACE = "trace";
+	private static final String PACKAGE_NAME = "package_name";
 	private static final String TITLE = "title";
 	private static final String TIMESTAMP = "timestamp";
 	private static final String TYPE = "anr_type";
@@ -24,9 +25,9 @@ public class AnrDatabase {
 	private static AnrDatabase instance;
 	private int openCount = 0;
 	private SQLiteDatabase db;
-	private static String[] COLUMNS = { ID,/* 0 */TRACE/* 1 */, TITLE/* 2 */, TYPE /* 3 */, TIMESTAMP /* 4 */};
-	private static String CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TRACE
-			+ " TEXT NOT NULL, " + TITLE + " TEXT, " + TYPE + " TEXT NOT NULL, " + TIMESTAMP + " INTEGER)";
+	private static String[] COLUMNS = { ID,/* 0 */PACKAGE_NAME,/* 1 */TRACE/* 3 */, TITLE/* 3 */, TYPE /* 4 */, TIMESTAMP /* 5 */};
+	private static String CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + PACKAGE_NAME
+			+ " TEXT NOT NULL, " + TRACE + " TEXT NOT NULL, " + TITLE + " TEXT, " + TYPE + " TEXT NOT NULL, " + TIMESTAMP + " INTEGER)";
 
 	public static AnrDatabase getInstance() {
 		if (instance == null) {
@@ -58,6 +59,18 @@ public class AnrDatabase {
 		return db.query(TABLE_NAME, COLUMNS, null, null, null, null, TIMESTAMP + " DESC");
 	}
 
+	public Cursor getAllLogsForPackageName(String packageName) {
+		return db.query(TABLE_NAME, COLUMNS, PACKAGE_NAME + " = ?", new String[] { packageName }, null, null, TIMESTAMP + " DESC");
+	}
+
+	public Cursor getLogsGroupedByPackageName(String packageName) {
+		return db.query(TABLE_NAME, COLUMNS, PACKAGE_NAME + " = ?", new String[] { packageName }, TITLE, null, TIMESTAMP + " DESC");
+	}
+
+	public Cursor getPackageNames() {
+		return db.query(true, TABLE_NAME, new String[] { PACKAGE_NAME }, null, null, null, null, null, null);
+	}
+
 	public void insertLog(AnrLog log) {
 		ContentValues values = getValues(log);
 		db.insert(TABLE_NAME, null, values);
@@ -77,15 +90,17 @@ public class AnrDatabase {
 
 	public static AnrLog getFromCursor(Cursor cursor) {
 		long id = cursor.getLong(0);
-		String trace = cursor.getString(1);
-		String title = cursor.getString(2);
-		String typeString = cursor.getString(3);
-		long timestamp = cursor.getLong(4);
-		return new AnrLog(id, trace, title, AnrType.findAnrType(typeString), timestamp);
+		String packageName = cursor.getString(1);
+		String trace = cursor.getString(2);
+		String title = cursor.getString(3);
+		String typeString = cursor.getString(4);
+		long timestamp = cursor.getLong(5);
+		return new AnrLog(id, packageName, trace, title, AnrType.findAnrType(typeString), timestamp);
 	}
 
 	private ContentValues getValues(AnrLog log) {
 		ContentValues values = new ContentValues();
+		values.put(PACKAGE_NAME, log.getPackageName());
 		values.put(TRACE, log.getTrace());
 		values.put(TITLE, log.getTitle());
 		values.put(TYPE, log.getType().getName());

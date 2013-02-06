@@ -13,17 +13,17 @@ public class AnrReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		// TODO Auto-generated method stub
 		final String flattenedTrace = intent.getStringExtra(AnrDetectorConstants.EXTRA_ANR_FLATTENED_TRACE);
 		final String title = "test title";
 		final long timestamp = intent.getLongExtra(AnrDetectorConstants.EXTRA_ANR_TIMESTAMP, System.currentTimeMillis());
 		final String typeString = intent.getStringExtra(AnrDetectorConstants.EXTRA_ANR_TYPE_STRING);
+		final String packageName = intent.getStringExtra(AnrDetectorConstants.EXTRA_ANR_PACKAGE_NAME);
 		final AnrType type = AnrType.findAnrType(typeString);
 		new AsyncTask<Void, Void, Void>() {
 			@Override
 			protected Void doInBackground(Void... params) {
 				AnrDatabase.getInstance().open();
-				AnrLog log = new AnrLog(flattenedTrace, title, type, timestamp);
+				AnrLog log = new AnrLog(packageName, flattenedTrace, title, type, timestamp);
 				AnrDatabase.getInstance().insertLog(log);
 				AnrDatabase.getInstance().close();
 				return null;
