@@ -14,7 +14,7 @@ public class AnrReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		final String flattenedTrace = intent.getStringExtra(AnrDetectorConstants.EXTRA_ANR_FLATTENED_TRACE);
-		final String title = "test title";
+		final String title = "test title: "+System.currentTimeMillis();
 		final long timestamp = intent.getLongExtra(AnrDetectorConstants.EXTRA_ANR_TIMESTAMP, System.currentTimeMillis());
 		final String typeString = intent.getStringExtra(AnrDetectorConstants.EXTRA_ANR_TYPE_STRING);
 		final String packageName = intent.getStringExtra(AnrDetectorConstants.EXTRA_ANR_PACKAGE_NAME);
@@ -34,7 +34,7 @@ public class AnrReceiver extends BroadcastReceiver {
 				super.onPostExecute(result);
 				// TODO notify here
 			}
-		};
+		}.execute();
 
 	}
 }

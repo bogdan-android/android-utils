@@ -41,11 +41,53 @@ public class MainActivity extends ListActivity implements LoaderCallbacks<Cursor
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		selectedPackageName = "ro.bogdan.test1";
+		selectedPackageName = "ro.bogdan.androidutils.anrgenerator";
 		adapter = new AnrAdapter(this, null);
 		setListAdapter(adapter);
 		getSupportLoaderManager().initLoader(ID_LOAD_ANR, null, this);
 
+	}
+
+	private void deleteLogs() {
+		new AsyncTask<Void, Void, Void>() {
+
+			protected void onPreExecute() {
+				showDialog(DIALOG_PROGRESS);
+			};
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				AnrDatabase.getInstance().open();
+				try {
+					AnrDatabase.getInstance().deleteForPackageName(selectedPackageName);
+				} finally {
+					AnrDatabase.getInstance().close();
+				}
+				return null;
+			}
+
+			protected void onPostExecute(Void result) {
+				super.onPostExecute(result);
+				getSupportLoaderManager().restartLoader(ID_LOAD_ANR, null, MainActivity.this);
+			};
+		}.execute();
+	}
+
+	@Override
+	public void onBackPressed() {
+		if (!dismissActionMode()) {
+			super.onBackPressed();
+		}
+	}
+
+	private boolean dismissActionMode() {
+		if (mode != null) {
+			mode.finish();
+			mode = null;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@Override
@@ -91,48 +133,6 @@ public class MainActivity extends ListActivity implements LoaderCallbacks<Cursor
 				return progress;
 		}
 		return super.onCreateDialog(id);
-	}
-
-	private void deleteLogs() {
-		new AsyncTask<Void, Void, Void>() {
-
-			protected void onPreExecute() {
-				showDialog(DIALOG_PROGRESS);
-			};
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				AnrDatabase.getInstance().open();
-				try {
-					AnrDatabase.getInstance().deleteForPackageName(selectedPackageName);
-				} finally {
-					AnrDatabase.getInstance().close();
-				}
-				return null;
-			}
-
-			protected void onPostExecute(Void result) {
-				super.onPostExecute(result);
-				getSupportLoaderManager().restartLoader(ID_LOAD_ANR, null, MainActivity.this);
-			};
-		}.execute();
-	}
-
-	@Override
-	public void onBackPressed() {
-		if (!dismissActionMode()) {
-			super.onBackPressed();
-		}
-	}
-
-	private boolean dismissActionMode() {
-		if (mode != null) {
-			mode.finish();
-			mode = null;
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 	public void testInsert() {
@@ -185,9 +185,8 @@ public class MainActivity extends ListActivity implements LoaderCallbacks<Cursor
 
 		@Override
 		public Cursor loadInBackground() {
-			System.out.println("AnrAsyncLoader.loadInBackground()");
 			AnrDatabase.getInstance().open();
-			Cursor cursor = AnrDatabase.getInstance().getLogsGroupedByPackageName(packageName);
+			Cursor cursor = AnrDatabase.getInstance().getAllLogs();
 			return cursor;
 		}
 
@@ -195,24 +194,29 @@ public class MainActivity extends ListActivity implements LoaderCallbacks<Cursor
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-		showDialog(DIALOG_PROGRESS);
-		return new AnrAsyncLoader(this, selectedPackageName);
+		switch (id) {
+			case ID_LOAD_ANR:
+				showDialog(DIALOG_PROGRESS);
+				return new AnrAsyncLoader(this, selectedPackageName);
+		}
+		return null;
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		while (cursor.moveToNext()) {
-			AnrLog log = AnrDatabase.getFromCursor(cursor);
-			System.out.println("found log: " + log);
+		int id = loader.getId();
+		switch (id) {
+			case ID_LOAD_ANR:
+				adapter.changeCursor(cursor);
+				removeDialog(DIALOG_PROGRESS);
+				break;
 		}
-		adapter.changeCursor(cursor);
-		removeDialog(DIALOG_PROGRESS);
 		System.out.println("onLoadFinished()");
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		System.out.println("onLoaderReset()");
+		//NOP
 	}
 
 	private final class SendLogsActionMode implements ActionMode.Callback {
