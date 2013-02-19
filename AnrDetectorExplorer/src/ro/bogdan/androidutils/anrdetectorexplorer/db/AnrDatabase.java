@@ -88,6 +88,10 @@ public class AnrDatabase {
 		db.delete(TABLE_NAME, ID + " = ?", new String[] { String.valueOf(id) });
 	}
 
+	public void deleteForPackageName(String selectedPackageName) {
+		db.delete(TABLE_NAME, PACKAGE_NAME + " = ?", new String[] { selectedPackageName });
+	}
+
 	public static AnrLog getFromCursor(Cursor cursor) {
 		long id = cursor.getLong(0);
 		String packageName = cursor.getString(1);

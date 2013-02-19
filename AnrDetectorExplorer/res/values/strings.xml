@@ -5,5 +5,12 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_send">Send logs</string>
+    <string name="no_anrs">Good job! No ANRs were found!</string>
+    <string name="menu_clear">Clear logs</string>
+    <string name="delete">Delete</string>
+    <string name="please_wait">Please wait</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_all_logs">Delete all logs</string>
+    <string name="are_you_sure_delete_logs">Do you really want to delete all logs?</string>
 
 </resources>
